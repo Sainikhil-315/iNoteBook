@@ -14,11 +14,12 @@ router.post('/createuser', /* expresss validation */[
     body('password', 'Password must be atleast 5 characters').isLength({ min: 5 })
 ], async (req, res) => {
     try {
+        let success = false;
         console.log(req.body);
         // if there are errors return bad requessts
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
-            return res.status(400).json({ errors: errors.array() });
+            return res.status(400).json({ success, errors: errors.array() });
         }
         // check whether user exists with same email
         let user = await User.findOne({ email: req.body.email })
@@ -39,7 +40,8 @@ router.post('/createuser', /* expresss validation */[
             }
         }
         const authtoken = jwt.sign(data, JWT_SECRET);
-        res.json({ authtoken });
+        success = true;
+        res.json({ success, authtoken });
     } catch (error) {
         console.log(error);
     }
@@ -50,6 +52,7 @@ router.post('/login', /* expresss validation */[
     body('email', 'Enter a valid email').isEmail(),
     body('password', 'Enter a value').exists(),
 ], async (req, res) => {
+    let success = false;
     // if there are errors return bad requests
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -61,11 +64,13 @@ router.post('/login', /* expresss validation */[
         let user = await User.findOne({ email })
         console.log(user);
         if (!user) {
-            return res.status(400).json({ errors: 'User doesnt exist' })
+            success = false;
+            return res.status(400).json({ success, errors: 'User doesnt exist' })
         }
         const passwordCompare = await bcrypt.compare(password, user.password)
         if (!passwordCompare) {
-            return res.status(400).json({ errors: 'enter correct password' })
+            success = false;
+            return res.status(400).json({ success, errors: 'enter correct password' })
         }
 
         const data = {
@@ -73,8 +78,10 @@ router.post('/login', /* expresss validation */[
                 id: user.id
             }
         }
+        
         const authtoken = jwt.sign(data, JWT_SECRET);
-        res.json({ authtoken });
+        success = true
+        res.json({ success, authtoken });
     } catch (error) {
         console.error(error);
         res.status(500).send('server error');

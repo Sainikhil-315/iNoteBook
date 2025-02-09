@@ -1,14 +1,20 @@
 import React, { useContext, useEffect, useRef, useState } from 'react'
-import noteContext from "../context/notes/noteContext";
+import noteContext from "../context/notes/noteContext"
 import NoteItem from './NoteItem';
-import AddNote from './Addnote'
+import Addnote from './Addnote';
+import { useNavigate } from 'react-router-dom';
 
 const Notes = () => {
+    const nav = useNavigate();
     const context = useContext(noteContext);
     const { notes, getNotes, editNote } = context;
     useEffect(() => {
-        getNotes()
         // eslint-disable-next-line
+        if(localStorage.getItem('token')){
+            getNotes()
+        } else {
+            nav('/login');
+        }
     }, [])
     const ref = useRef(null)
     const refClose = useRef(null)
@@ -30,7 +36,7 @@ const Notes = () => {
 
     return (
         <>
-            <AddNote />
+            <Addnote />
             <button ref={ref} type="button" className="btn btn-primary d-none" data-bs-toggle="modal" data-bs-target="#exampleModal">
                 Launch demo modal
             </button>
@@ -79,4 +85,4 @@ const Notes = () => {
     )
 }
 
-export default Notes;
+export default Notes
